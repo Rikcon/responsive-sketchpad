@@ -1,6 +1,6 @@
 export default class Sketchpad {
-    readonly canvas: HTMLCanvasElement;
-    private readonly ctx;
+    canvas: HTMLCanvasElement;
+    readonly ctx: CanvasRenderingContext2D;
     private sketching;
     private _strokes;
     private undoneStrokes;
@@ -12,6 +12,7 @@ export default class Sketchpad {
     private lineCap;
     private lineJoin;
     private lineMiterLimit;
+    private backgroundImage?;
     private onDrawEnd?;
     constructor(el: HTMLElement, opts?: SketchpadOptionsI);
     get strokes(): Array<StrokeI>;
@@ -43,10 +44,15 @@ export default class Sketchpad {
     private pushStroke;
     private pushPoint;
     private redraw;
+    private drawImage;
     private listen;
     private startStrokeHandler;
     private drawStrokeHandler;
     private endStrokeHandler;
+    /**
+     * getImage from canvas
+     */
+    getImage(): string;
 }
 interface PointI {
     readonly x: number;
@@ -75,6 +81,7 @@ interface SketchpadOptionsI {
     aspectRatio?: number;
     line?: LineOptionsI;
     data?: DataI;
+    backgroundImage?: any;
     onDrawEnd?: () => void;
 }
 interface StrokeI extends LineOptionsI {

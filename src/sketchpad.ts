@@ -1,7 +1,7 @@
 export default class Sketchpad {
-  readonly canvas: HTMLCanvasElement;
+  public canvas: HTMLCanvasElement;
 
-  private readonly ctx: CanvasRenderingContext2D;
+  public readonly ctx: CanvasRenderingContext2D;
   private sketching = false;
   private _strokes: Array<Stroke> = []; // v2.0 - Rename to strokes
   private undoneStrokes: Array<Stroke> = [];
@@ -15,6 +15,7 @@ export default class Sketchpad {
   private lineCap: CanvasLineCap = 'round';
   private lineJoin: CanvasLineJoin = 'round';
   private lineMiterLimit = 10;
+  private backgroundImage?: CanvasImageSource;
   private onDrawEnd?: () => void; // v2.0 - Remove
 
   constructor(el: HTMLElement, opts?: SketchpadOptionsI) {
@@ -38,6 +39,10 @@ export default class Sketchpad {
       this.redraw();
     }
 
+    if(this.backgroundImage !== null){
+      this.drawImage(this.backgroundImage);
+    }
+
     this.listen();
   }
 
@@ -59,6 +64,7 @@ export default class Sketchpad {
       width: this.canvas.width,
       height: this.canvas.height,
       aspectRatio: this.canvas.width / this.canvas.height,
+      backgroundImage: this.backgroundImage,
       line: {
         size: this.lineWidth,
         color: this.lineColor,
@@ -188,6 +194,9 @@ export default class Sketchpad {
     if (opts.backgroundColor) {
       this.backgroundColor = opts.backgroundColor;
     }
+    if (opts.backgroundImage) {
+      this.backgroundImage = opts.backgroundImage;
+    }
     if (opts.line?.size) {
       this.lineWidth = opts.line.size;
     }
@@ -244,6 +253,10 @@ export default class Sketchpad {
   private clearCanvas(): void {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+    if (this.backgroundImage) {
+      this.drawImage(this.backgroundImage);
+    }
+
     if (this.backgroundColor) {
       this.ctx.fillStyle = this.backgroundColor;
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -265,6 +278,7 @@ export default class Sketchpad {
     }
     this.ctx.closePath();
 
+    
     if (stroke.color) {
       this.ctx.strokeStyle = stroke.color;
     }
@@ -307,7 +321,12 @@ export default class Sketchpad {
   // Redraw the whole canvas
   private redraw(): void {
     this.clearCanvas();
+    this.drawImage(this.backgroundImage);
     this._strokes.forEach((s) => this.drawStroke(s));
+  }
+
+  private drawImage(backgroundImage: any) {
+    this.ctx.drawImage(backgroundImage, 0, 0);
   }
 
   private listen(): void {
@@ -359,6 +378,14 @@ export default class Sketchpad {
       this.onDrawEnd();
     }
   }
+
+  /**
+   * getImage from canvas
+   */
+  public getImage(): string {
+    return this.canvas.toDataURL("image/jpeg", 1.0);
+  }
+
 }
 
 function isTouchEvent(e: Event): boolean {
@@ -400,6 +427,7 @@ interface SketchpadOptionsI {
   aspectRatio?: number;
   line?: LineOptionsI;
   data?: DataI;
+  backgroundImage?: any;
   onDrawEnd?: () => void;
 }
 
